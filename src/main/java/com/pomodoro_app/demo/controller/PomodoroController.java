@@ -51,7 +51,7 @@ public class PomodoroController {
 
     @PostMapping("/{id}/skip-break")
     public ResponseEntity<PomodoroSession> skipBreak(@PathVariable String id) {
-        return ResponseEntity.ok(service.startSession(id));
+        return ResponseEntity.ok(service.skipBreak(id));
     }
 
     @GetMapping("/{id}/sync")
