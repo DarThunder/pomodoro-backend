@@ -55,6 +55,7 @@ public class AuthController {
         }
 
         ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(loginRequest.getUsername());
+        System.out.println("Le di está cookie:" + jwtCookie.toString());
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())

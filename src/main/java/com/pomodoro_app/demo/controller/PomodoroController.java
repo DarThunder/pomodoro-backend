@@ -67,4 +67,9 @@ public class PomodoroController {
     public ResponseEntity<UserStatsDTO> getUserStats(@PathVariable String userId) {
         return ResponseEntity.ok(statsService.getUserStats(userId));
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<PomodoroSession> updateSession(@PathVariable String id, @RequestBody PomodoroSession sessionDetails) {
+        return ResponseEntity.ok(service.update(id, sessionDetails));
+    }
 }

@@ -30,25 +30,44 @@ public class PomodoroService {
     }
 
     public PomodoroSession create(PomodoroSession session) {
-    Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-    
-    String username;
-    if (principal instanceof UserDetails) {
-        username = ((UserDetails)principal).getUsername();
-    } else {
-        username = principal.toString();
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        
+        String username;
+        if (principal instanceof UserDetails) {
+            username = ((UserDetails)principal).getUsername();
+        } else {
+            username = principal.toString();
+        }
+        System.out.println("Nombre de usuario: " + username);
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found on the session"));
+
+        session.setUserId(user.getId());
+
+        session.setStatus(TaskStatus.PENDING);
+        session.setNanosAccumulated(0);
+        
+        return repository.save(session);
     }
 
-    User user = userRepository.findByUsername(username)
-            .orElseThrow(() -> new RuntimeException("User not found on the session"));
+    public PomodoroSession update(String id, PomodoroSession sessionDetails) {
+        PomodoroSession session = getSession(id);
 
-    session.setUserId(user.getId());
+        if (sessionDetails.getTaskName() != null) {
+            session.setTaskName(sessionDetails.getTaskName());
+        }
 
-    session.setStatus(TaskStatus.PENDING);
-    session.setNanosAccumulated(0);
-    
-    return repository.save(session);
-}
+        if (sessionDetails.getDurationMinutes() > 0) {
+            session.setDurationMinutes(sessionDetails.getDurationMinutes());
+        }
+
+        if (sessionDetails.getStatus() != null) {
+            session.setStatus(sessionDetails.getStatus());
+        }
+
+        return repository.save(session);
+    }
 
     public PomodoroSession startSession(String id) {
         PomodoroSession session = getSession(id);

@@ -5,31 +5,27 @@ ATTACKER="hacker_$(date +%s)"
 PASS="123456"
 COOKIE_FILE="cookies_hacker.txt"
 
-echo "=== INICIANDO PROTOCOLO DE CAOS: $ATTACKER ==="
+echo "=== STARTING CHAOS PROTOCOL: $ATTACKER ==="
 
-# ---------------------------------------------------------
-# NIVEL 1: SEGURIDAD Y AUTENTICACIÓN
-# ---------------------------------------------------------
-echo -e "\n[TEST 1] Intento de acceso sin token (Debe dar 401/403)..."
+echo -e "\n[TEST 1] Tokenless access attempt (Should return 401/403)..."
 STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/api/pomodoros")
 if [ "$STATUS" == "403" ] || [ "$STATUS" == "401" ]; then
-    echo "BLOQUEADO (Código $STATUS)"
+    echo "BLOCKED (Code $STATUS)"
 else
-    echo "FALLO DE SEGURIDAD: Código $STATUS"
+    echo "SECURITY FAILURE: Code $STATUS"
 fi
 
-echo -e "\n[TEST 2] Login con contraseña incorrecta..."
+echo -e "\n[TEST 2] Login with incorrect password..."
 STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$BASE_URL/api/auth/login" \
      -H "Content-Type: application/json" \
      -d "{\"username\": \"admin\", \"password\": \"WRONG_PASS\"}")
 if [ "$STATUS" == "401" ]; then
-    echo "DENEGADO (Código $STATUS)"
+    echo "DENIED (Code $STATUS)"
 else
-    echo "ERROR: Se permitió acceso o error interno (Código $STATUS)"
+    echo "ERROR: Access allowed or internal error (Code $STATUS)"
 fi
 
-# Registro legítimo para continuar los ataques
-echo -e "\n... Creando usuario atacante para siguientes pruebas..."
+echo -e "\n... Creating attacker user for subsequent tests..."
 curl -s -X POST "$BASE_URL/api/auth/register" \
      -H "Content-Type: application/json" \
      -d "{\"username\": \"$ATTACKER\", \"email\": \"hack@test.com\", \"password\": \"$PASS\"}" > /dev/null
@@ -38,50 +34,42 @@ curl -s -c $COOKIE_FILE -X POST "$BASE_URL/api/auth/login" \
      -H "Content-Type: application/json" \
      -d "{\"username\": \"$ATTACKER\", \"password\": \"$PASS\"}" > /dev/null
 
-# ---------------------------------------------------------
-# NIVEL 2: VALIDACIÓN DE DATOS (INPUT FUZZING)
-# ---------------------------------------------------------
-echo -e "\n[TEST 3] Enviar duración negativa (Debe dar 400)..."
+echo -e "\n[TEST 3] Send negative duration (Should return 400)..."
 RESPONSE=$(curl -s -b $COOKIE_FILE -w "\nHTTP_CODE:%{http_code}" -X POST "$BASE_URL/api/pomodoros" \
      -H "Content-Type: application/json" \
      -d '{"taskName": "Crash Task", "durationMinutes": -5}')
 HTTP_CODE=$(echo "$RESPONSE" | grep "HTTP_CODE" | cut -d':' -f2)
 
 if [ "$HTTP_CODE" == "400" ]; then
-    echo "VALIDACIÓN OK (Rechazado por @Min)"
+    echo "VALIDATION OK (Rejected by @Min)"
 else
-    echo "FALLO: El servidor aceptó tiempo negativo o crasheó ($HTTP_CODE)"
+    echo "FAILURE: Server accepted negative time or crashed ($HTTP_CODE)"
 fi
 
-echo -e "\n[TEST 4] Enviar JSON corrupto/vacío (Debe dar 400)..."
+echo -e "\n[TEST 4] Send corrupt/empty JSON (Should return 400)..."
 STATUS=$(curl -s -b $COOKIE_FILE -o /dev/null -w "%{http_code}" -X POST "$BASE_URL/api/pomodoros" \
      -H "Content-Type: application/json" \
      -d '{"invalid_field": "test"}')
 if [ "$STATUS" == "400" ]; then
-    echo "MANEJO DE ERROR OK (Bad Request)"
+    echo "ERROR HANDLING OK (Bad Request)"
 else
-    echo "FALLO: Servidor confundido ($STATUS)"
+    echo "FAILURE: Server confused ($STATUS)"
 fi
 
-# ---------------------------------------------------------
-# NIVEL 3: LÓGICA DE ESTADO (STATE MACHINE)
-# ---------------------------------------------------------
-echo -e "\n[TEST 5] Intentar pausar una sesión inexistente (Debe dar 400/404)..."
-RESPONSE=$(curl -s -b $COOKIE_FILE -X POST "$BASE_URL/api/pomodoros/ID_FALSO_123/pause")
+echo -e "\n[TEST 5] Attempt to pause a non-existent session (Should return 400/404)..."
+RESPONSE=$(curl -s -b $COOKIE_FILE -X POST "$BASE_URL/api/pomodoros/FAKE_ID_123/pause")
 if [[ $RESPONSE == *"Session not found"* ]] || [[ $RESPONSE == *"status"* ]]; then
-    echo "ERROR CONTROLADO: $RESPONSE"
+    echo "CONTROLLED ERROR: $RESPONSE"
 else
-    echo "RESPUESTA INESPERADA"
+    echo "UNEXPECTED RESPONSE"
 fi
 
-# Crear sesión válida para machacarla
 SESSION_RES=$(curl -s -b $COOKIE_FILE -X POST "$BASE_URL/api/pomodoros" \
      -H "Content-Type: application/json" \
      -d '{"taskName": "Stress Task", "durationMinutes": 10}')
 ID=$(echo $SESSION_RES | jq -r '.id')
 
-echo -e "\n[TEST 6] Spamear botones (Start -> Pause -> Stop -> Start) en milisegundos..."
-# Esto prueba condiciones de carrera y la robustez de la DB
+echo -e "\n[TEST 6] Spam buttons (Start -> Pause -> Stop -> Start) in milliseconds..."
 curl -s -b $COOKIE_FILE -X POST "$BASE_URL/api/pomodoros/$ID/start" > /dev/null &
 PID1=$!
 curl -s -b $COOKIE_FILE -X POST "$BASE_URL/api/pomodoros/$ID/pause" > /dev/null &
@@ -90,14 +78,11 @@ curl -s -b $COOKIE_FILE -X POST "$BASE_URL/api/pomodoros/$ID/stop" > /dev/null &
 PID3=$!
 
 wait $PID1 $PID2 $PID3
-echo "Spam enviado. Verificando estado final..."
+echo "Spam sent. Verifying final status..."
 FINAL_STATUS=$(curl -s -b $COOKIE_FILE -X GET "$BASE_URL/api/pomodoros" | jq -r ".[] | select(.id==\"$ID\") | .status")
-echo "Estado resultante: $FINAL_STATUS (Debería ser consistente, ej. TERMINATED o IN_PROGRESS)"
+echo "Resulting status: $FINAL_STATUS (Should be consistent, e.g., TERMINATED or IN_PROGRESS)"
 
-# ---------------------------------------------------------
-# NIVEL 4: CARGA (MILD LOAD TESTING)
-# ---------------------------------------------------------
-echo -e "\n[TEST 7] La 'Ametralladora': Creando 20 sesiones en ráfaga..."
+echo -e "\n[TEST 7] The 'Machine Gun': Creating 20 sessions in a burst..."
 START_TIME=$(date +%s%N)
 SUCCESS_COUNT=0
 for i in {1..20}; do
@@ -111,14 +96,13 @@ done
 END_TIME=$(date +%s%N)
 DURATION=$((($END_TIME - $START_TIME)/1000000))
 
-echo "$SUCCESS_COUNT/20 sesiones creadas en ${DURATION}ms"
+echo "$SUCCESS_COUNT/20 sessions created in ${DURATION}ms"
 if [ $SUCCESS_COUNT -eq 20 ]; then
-    echo "SERVIDOR AGUANTÓ LA RÁFAGA"
+    echo "SERVER WITHSTOOD THE BURST"
 else
-    echo "ALGUNAS PETICIONES FALLARON"
+    echo "SOME REQUESTS FAILED"
 fi
 
-# Limpieza
 curl -s -b $COOKIE_FILE -X POST "$BASE_URL/api/auth/logout" > /dev/null
 rm $COOKIE_FILE
-echo -e "\n=== FIN DEL REPORTE DE DAÑOS ==="
+echo -e "\n=== END OF DAMAGE REPORT ==="

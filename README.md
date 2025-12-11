@@ -67,14 +67,15 @@ The syntax is designed to be RESTful and predictable.
 
 ### Pomodoro Module
 
-| Method   | Endpoint                     | Description                               | Body / Params                                  |
-| :------- | :--------------------------- | :---------------------------------------- | :--------------------------------------------- |
-| **POST** | `/api/pomodoros`             | Creates a new focus session.              | `{ "taskName": "Dev", "durationMinutes": 25 }` |
-| **POST** | `/api/pomodoros/{id}/start`  | Starts the timer for a session.           | _Path Variable ID_                             |
-| **POST** | `/api/pomodoros/{id}/pause`  | Pauses the timer and accumulates time.    | _Path Variable ID_                             |
-| **POST** | `/api/pomodoros/{id}/stop`   | Ends the session prematurely.             | _Path Variable ID_                             |
-| **GET**  | `/api/pomodoros/{id}/sync`   | Gets the remaining time (in nanoseconds). | _Path Variable ID_                             |
-| **GET**  | `/api/pomodoros/stats/{uid}` | Aggregated user statistics.               | _Path Variable UserID_                         |
+| Method   | Endpoint                     | Description                               | Body / Params                                    |
+| :------- | :--------------------------- | :---------------------------------------- | :----------------------------------------------- |
+| **POST** | `/api/pomodoros`             | Creates a new focus session.              | `{ "taskName": "Dev", "durationMinutes": 25 }`   |
+| **PUT**  | `/api/pomodoros/{id}`        | Updates session details.                  | `{ "taskName": "Fix", "status": "IN_PROGRESS" }` |
+| **POST** | `/api/pomodoros/{id}/start`  | Starts the timer for a session.           | _Path Variable ID_                               |
+| **POST** | `/api/pomodoros/{id}/pause`  | Pauses the timer and accumulates time.    | _Path Variable ID_                               |
+| **POST** | `/api/pomodoros/{id}/stop`   | Ends the session prematurely.             | _Path Variable ID_                               |
+| **GET**  | `/api/pomodoros/{id}/sync`   | Gets the remaining time (in nanoseconds). | _Path Variable ID_                               |
+| **GET**  | `/api/pomodoros/stats/{uid}` | Aggregated user statistics.               | _Path Variable UserID_                           |
 
 ## Architecture & Resilience
 
@@ -104,4 +105,4 @@ A: Because when you need strict typing, real dependency injection, and a compile
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](https://www.google.com/search?q=LICENSE) file for details.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.

@@ -48,3 +48,18 @@ This release marks the transition from development to a production-ready system.
 
 - **Stats Service Patch:** Fixed a bug in the Aggregation Pipeline where the `UserStatsDTO` returned a `null` userId. The service now correctly maps the requested user ID to the response object.
 - **Dependency Injection:** Resolved an `UnsatisfiedDependencyException` by implementing a dedicated `UserDetailsServiceImpl` to bridge the gap between Spring Security and the MongoDB `UserRepository`.
+
+### v1.1.0
+
+**"The Flexibility Update"**
+
+Based on developer feedback and team requirements, this update introduces session mutability and improves the local development experience.
+
+#### Features
+
+- **Session Editing:** Introduced the `PUT /api/pomodoros/{id}` endpoint. Users can now modify session details (Task Name, Duration, and Status) post-creation, offering greater flexibility for correcting mistakes or adjusting workflows manually.
+
+#### Fixes & Improvements
+
+- **Localhost Compatibility:** Patched `JwtUtils` to support non-HTTPS environments by implementing dynamic Cookie Security (`Secure=true`, `SameSite=None`) when running in development mode. This resolves authentication issues previously encountered on `localhost`.
+- **Documentation:** Updated README and Wiki tables to reflect the new API capabilities and ensure the documentation matches the current state of the codebase.

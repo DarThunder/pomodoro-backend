@@ -1,78 +1,63 @@
 #!/bin/bash
 
-# CONFIGURACIÓN
-# Cambia esto a tu URL de Render/Railway cuando despliegues (ej. https://tu-app.onrender.com)
 BASE_URL="http://localhost:8080"
-USER="tester_$(date +%s)" # Usuario único cada vez
+USER="tester_$(date +%s)"
 PASS="password123"
 COOKIE_FILE="cookies.txt"
 
-echo "=== INICIANDO TEST DE ENDPOINTS EN: $BASE_URL ==="
-echo "Usuario temporal: $USER"
+echo "=== STARTING ENDPOINT TEST ON: $BASE_URL ==="
+echo "Temporary User: $USER"
 
-# 1. REGISTER
-echo -e "\n1. [POST] Registrando usuario..."
+echo -e "\n1. [POST] Registering user..."
 curl -s -X POST "$BASE_URL/api/auth/register" \
      -H "Content-Type: application/json" \
      -d "{\"username\": \"$USER\", \"email\": \"$USER@test.com\", \"password\": \"$PASS\"}"
 
-# 2. LOGIN (Guardamos la cookie)
-echo -e "\n\n2. [POST] Iniciando sesión..."
+echo -e "\n\n2. [POST] Logging in..."
 curl -s -c $COOKIE_FILE -X POST "$BASE_URL/api/auth/login" \
      -H "Content-Type: application/json" \
      -d "{\"username\": \"$USER\", \"password\": \"$PASS\"}"
 
-# 3. CREATE SESSION
-echo -e "\n\n3. [POST] Creando sesión de Pomodoro..."
+echo -e "\n\n3. [POST] Creating Pomodoro session..."
 RESPONSE=$(curl -s -b $COOKIE_FILE -X POST "$BASE_URL/api/pomodoros" \
      -H "Content-Type: application/json" \
      -d '{"taskName": "Benchmark Task", "durationMinutes": 25}')
 
-echo "Respuesta: $RESPONSE"
+echo "Response: $RESPONSE"
 
-# Extraemos IDs usando jq (Asegúrate de tener jq instalado)
 SESSION_ID=$(echo $RESPONSE | jq -r '.id')
 USER_ID=$(echo $RESPONSE | jq -r '.userId')
 
 if [ "$SESSION_ID" == "null" ]; then
-    echo "Error: No se pudo obtener ID de sesión. Abortando."
+    echo "Error: Could not retrieve Session ID. Aborting."
     exit 1
 fi
 
-echo ">> Session ID capturado: $SESSION_ID"
-echo ">> User ID capturado: $USER_ID"
+echo ">> Captured Session ID: $SESSION_ID"
+echo ">> Captured User ID: $USER_ID"
 
-# 4. START TIMER
-echo -e "\n4. [POST] Iniciando timer ($SESSION_ID)..."
+echo -e "\n4. [POST] Starting timer ($SESSION_ID)..."
 curl -s -b $COOKIE_FILE -X POST "$BASE_URL/api/pomodoros/$SESSION_ID/start" | jq -r '.status'
 
-# 5. SYNC (Ver tiempo)
-echo -e "\n5. [GET] Consultando tiempo restante..."
+echo -e "\n5. [GET] Querying remaining time..."
 curl -s -b $COOKIE_FILE -X GET "$BASE_URL/api/pomodoros/$SESSION_ID/sync"
 
-# Simular espera
 sleep 1
 
-# 6. PAUSE
-echo -e "\n\n6. [POST] Pausando timer..."
+echo -e "\n\n6. [POST] Pausing timer..."
 curl -s -b $COOKIE_FILE -X POST "$BASE_URL/api/pomodoros/$SESSION_ID/pause" | jq -r '.status'
 
-# 7. STOP
-echo -e "\n7. [POST] Deteniendo sesión..."
+echo -e "\n7. [POST] Stopping session..."
 curl -s -b $COOKIE_FILE -X POST "$BASE_URL/api/pomodoros/$SESSION_ID/stop" | jq -r '.status'
 
-# 8. GET ALL SESSIONS
-echo -e "\n8. [GET] Listando todas las sesiones..."
+echo -e "\n8. [GET] Listing all sessions..."
 curl -s -b $COOKIE_FILE -X GET "$BASE_URL/api/pomodoros" | jq '. | length'
 
-# 9. GET USER STATS
-echo -e "\n9. [GET] Estadísticas del usuario ($USER_ID)..."
+echo -e "\n9. [GET] User statistics ($USER_ID)..."
 curl -s -b $COOKIE_FILE -X GET "$BASE_URL/api/pomodoros/stats/$USER_ID" | jq .
 
-# 10. LOGOUT
-echo -e "\n10. [POST] Cerrando sesión..."
+echo -e "\n10. [POST] Logging out..."
 curl -s -b $COOKIE_FILE -X POST "$BASE_URL/api/auth/logout"
 
-# Limpieza
 rm $COOKIE_FILE
-echo -e "\n\n=== TEST COMPLETADO ==="
+echo -e "\n\n=== TEST COMPLETE ==="

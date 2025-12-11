@@ -27,8 +27,8 @@ public class AuthTokenFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         try {
             String jwt = jwtUtils.getJwtFromCookies(request);
+            System.out.println("Cookie: " + jwt);
 
-            // 2. Validar
             if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
                 String username = jwtUtils.getUserNameFromJwtToken(jwt);
 
