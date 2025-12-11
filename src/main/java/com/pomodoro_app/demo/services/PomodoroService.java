@@ -26,7 +26,17 @@ public class PomodoroService {
     private TimeWorker timeWorker;
 
     public List<PomodoroSession> findAll() {
-        return repository.findAll();
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        String username;
+        if (principal instanceof UserDetails) {
+            username = ((UserDetails)principal).getUsername();
+        } else {
+            username = principal.toString();
+        }
+
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
+        return repository.findByUserId(user.getId());
     }
 
     public PomodoroSession create(PomodoroSession session) {

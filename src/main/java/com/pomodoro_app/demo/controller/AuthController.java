@@ -4,6 +4,8 @@ import com.pomodoro_app.demo.models.User;
 import com.pomodoro_app.demo.repository.UserRepository;
 import com.pomodoro_app.demo.security.JwtUtils;
 
+import java.util.Collections;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -55,11 +57,12 @@ public class AuthController {
         }
 
         ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(loginRequest.getUsername());
-        System.out.println("Le di está cookie:" + jwtCookie.toString());
+
+        System.out.println("id: " + user.getId() + "\nusername: " + user.getUsername());
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
-                .body("Login exitoso. Cookie segura establecida.");
+                .body(Collections.singletonMap("userId", user.getId()));
     }
 
     @PostMapping("/logout")
