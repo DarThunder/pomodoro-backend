@@ -49,9 +49,9 @@ The system follows the **12-Factor App** methodology. Configure these environmen
 | :------------------------ | :------------------------------ | :------------------------------------- |
 | `SPRING_DATA_MONGODB_URI` | MongoDB Connection String       | `mongodb://mongo-db:27017/pomodoro_db` |
 | `JWT_SECRET`              | HS256 master key (min 32 bytes) | _(Auto-generated in Dev)_              |
-| `FRONTEND_URL`            | Allowed origin for CORS         | `http://localhost:3000`                |
+| `FRONTEND_URL`            | Allowed origin for CORS         | `http://localhost:5500`                |
 | `PORT`                    | Server listening port           | `8080`                                 |
-| `COOKIE_SAME_SITE`        | Cookie policy (Strict/None)     | `Strict`                               |
+| `COOKIE_SAME_SITE`        | Cookie policy (Strict/None)     | `None`                                 |
 
 ## Usage (API Endpoints)
 
@@ -67,15 +67,17 @@ The syntax is designed to be RESTful and predictable.
 
 ### Pomodoro Module
 
-| Method   | Endpoint                     | Description                               | Body / Params                                    |
-| :------- | :--------------------------- | :---------------------------------------- | :----------------------------------------------- |
-| **POST** | `/api/pomodoros`             | Creates a new focus session.              | `{ "taskName": "Dev", "durationMinutes": 25 }`   |
-| **PUT**  | `/api/pomodoros/{id}`        | Updates session details.                  | `{ "taskName": "Fix", "status": "IN_PROGRESS" }` |
-| **POST** | `/api/pomodoros/{id}/start`  | Starts the timer for a session.           | _Path Variable ID_                               |
-| **POST** | `/api/pomodoros/{id}/pause`  | Pauses the timer and accumulates time.    | _Path Variable ID_                               |
-| **POST** | `/api/pomodoros/{id}/stop`   | Ends the session prematurely.             | _Path Variable ID_                               |
-| **GET**  | `/api/pomodoros/{id}/sync`   | Gets the remaining time (in nanoseconds). | _Path Variable ID_                               |
-| **GET**  | `/api/pomodoros/stats/{uid}` | Aggregated user statistics.               | _Path Variable UserID_                           |
+| Method     | Endpoint                         | Description                               | Body / Params                                    |
+| :--------- | :------------------------------- | :---------------------------------------- | :----------------------------------------------- |
+| **POST**   | `/api/pomodoros`                 | Creates a new focus session.              | `{ "taskName": "Dev", "durationMinutes": 25 }`   |
+| **PUT**    | `/api/pomodoros/{id}`            | Updates session details.                  | `{ "taskName": "Fix", "status": "IN_PROGRESS" }` |
+| **DELETE** | `/api/pomodoros/{id}`            | Deletes a session permanently.            | _Path Variable ID_                               |
+| **POST**   | `/api/pomodoros/{id}/start`      | Starts the timer for a session.           | _Path Variable ID_                               |
+| **POST**   | `/api/pomodoros/{id}/pause`      | Pauses the timer and accumulates time.    | _Path Variable ID_                               |
+| **POST**   | `/api/pomodoros/{id}/stop`       | Ends the session prematurely.             | _Path Variable ID_                               |
+| **POST**   | `/api/pomodoros/{id}/skip-break` | Skips the break and resumes focus.        | _Path Variable ID_                               |
+| **GET**    | `/api/pomodoros/{id}/sync`       | Gets the remaining time (in nanoseconds). | _Path Variable ID_                               |
+| **GET**    | `/api/pomodoros/stats/{uid}`     | Aggregated user statistics.               | _Path Variable UserID_                           |
 
 ## Architecture & Resilience
 

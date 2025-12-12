@@ -57,13 +57,15 @@ We moved away from `localStorage` tokens to a more secure, cookie-based approach
 
 The session state machine moves through specific transitions:
 
-| Endpoint              | Method | Transition                         | Description                                       |
-| :-------------------- | :----- | :--------------------------------- | :------------------------------------------------ |
-| `/api/pomodoros`      | `POST` | `NULL` → `PENDING`                 | Creates a session configuration.                  |
-| `/api/pomodoros/{id}` | `PUT`  | `*` → `*` (Manual)                 | Updates session details (Name, Duration, Status). |
-| `.../{id}/start`      | `POST` | `PENDING`/`PAUSED` → `IN_PROGRESS` | Starts/Resumes the timer.                         |
-| `.../{id}/pause`      | `POST` | `IN_PROGRESS` → `PAUSED`           | Stops timer, accumulates time.                    |
-| `.../{id}/stop`       | `POST` | `*` → `TERMINATED`                 | Finalizes the session permanently.                |
+| Endpoint              | Method   | Transition                         | Description                                       |
+| :-------------------- | :------- | :--------------------------------- | :------------------------------------------------ |
+| `/api/pomodoros`      | `POST`   | `NULL` → `PENDING`                 | Creates a session configuration.                  |
+| `/api/pomodoros/{id}` | `PUT`    | `*` → `*` (Manual)                 | Updates session details (Name, Duration, Status). |
+| `/api/pomodoros/{id}` | `DELETE` | `*` → `NULL`                       | Permanently removes the session from DB.          |
+| `.../{id}/start`      | `POST`   | `PENDING`/`PAUSED` → `IN_PROGRESS` | Starts/Resumes the timer.                         |
+| `.../{id}/pause`      | `POST`   | `IN_PROGRESS` → `PAUSED`           | Stops timer, accumulates time.                    |
+| `.../{id}/stop`       | `POST`   | `*` → `TERMINATED`                 | Finalizes the session permanently.                |
+| `.../{id}/skip-break` | `POST`   | `*` → `*` (Flag Update)            | Marks the break as skipped.                       |
 
 ### Real-time & Stats
 

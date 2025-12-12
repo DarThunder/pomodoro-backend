@@ -79,6 +79,11 @@ public class PomodoroService {
         return repository.save(session);
     }
 
+    public void delete(String id) {
+        PomodoroSession session = getSession(id);
+        repository.delete(session);
+    }
+
     public PomodoroSession startSession(String id) {
         PomodoroSession session = getSession(id);
 

@@ -72,4 +72,10 @@ public class PomodoroController {
     public ResponseEntity<PomodoroSession> updateSession(@PathVariable String id, @RequestBody PomodoroSession sessionDetails) {
         return ResponseEntity.ok(service.update(id, sessionDetails));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteSession(@PathVariable String id) {
+        service.delete(id);
+        return ResponseEntity.noContent().build();
+    }
 }
