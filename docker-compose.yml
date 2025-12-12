@@ -10,7 +10,6 @@ services:
         condition: service_healthy
     environment:
       - SPRING_DATA_MONGODB_URI=mongodb://mongo-db:27017/pomodoro_db
-      - FRONTEND_URL=http://127.0.0.1:3000
 
   mongo-db:
     image: mongo:latest
